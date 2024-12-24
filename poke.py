@@ -8,8 +8,8 @@ import shapely
 UNI_TOL = 1e-4
 
 class LineSegment:
-    point1 = (None, None)
-    point2 = (None, None)
+    point1 = None
+    point2 = None
     adjacent_segs = []
     def __init__(self, point1_in, point2_in):
         self.point1 = point1_in
@@ -20,7 +20,7 @@ class LineSegment:
         
 def is_in(point, list):
     for p in list:
-        if p.equals_exact(point, 1e-6):
+        if p.equals_exact(point, UNI_TOL):
             return True
     return False
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         z_points.append(i*your_mesh.bounding_box.bounds.max(axis=0))
 
     for j in range(len(midpoints)):
-        # j = int(ceil((len(midpoints)-1)/2))
+        j = int(ceil((len(midpoints)-1)/2))
         muh_lines = intersections.mesh_plane(your_mesh, (0,0,1), midpoints[j])
         seg_list = list(map(lambda line : LineSegment(shapely.Point(line[0,0:2]), shapely.Point(line[1,0:2])), muh_lines))
         if len(seg_list) <= 0:
@@ -59,6 +59,5 @@ if __name__ == "__main__":
         my_gon = shapely.Polygon(poly_points)
         x,y = my_gon.exterior.xy
         plt.plot(x,y)
-
-
+        break
     plt.show()
