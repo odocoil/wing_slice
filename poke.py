@@ -34,9 +34,8 @@ if __name__ == "__main__":
         midpoints.append(tuple(i*your_mesh.bounding_box.bounds.max(axis=0)))
         z_points.append(i*your_mesh.bounding_box.bounds.max(axis=0))
 
-    for j in range(len(midpoints)):
-        # j = int(ceil((len(midpoints)-1)/2))
-        muh_lines = intersections.mesh_plane(your_mesh, (0,0,1), midpoints[j])
+    for z_val in midpoints:
+        muh_lines = intersections.mesh_plane(your_mesh, (0,0,1), z_val)
         seg_list = list(map(lambda line : LineSegment(shapely.Point(line[0,0:2]), shapely.Point(line[1,0:2])), muh_lines))
         if len(seg_list) <= 0:
             continue
@@ -44,8 +43,8 @@ if __name__ == "__main__":
         END_OF_LOOP = False
         while True:
             current_seg = poly_segs[-1]
-            for k in range(len(seg_list)):
-                if seg_list[k].connected(current_seg):
+            for k, seg in enumerate(seg_list):
+                if seg.connected(current_seg):
                     poly_segs.append(seg_list.pop(k))
                     break
             else:
