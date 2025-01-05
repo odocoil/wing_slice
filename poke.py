@@ -17,6 +17,9 @@ class LineSegment:
 
     def connected(self, lineSeg2):
         return (self.point1.equals_exact(lineSeg2.point1, UNI_TOL) or self.point1.equals_exact(lineSeg2.point2, UNI_TOL) or self.point2.equals_exact(lineSeg2.point1, UNI_TOL) or self.point2.equals_exact(lineSeg2.point2, UNI_TOL))
+
+    def __repr__(self):
+        return self.point1.__repr__() + "--" + self.point2.__repr__()
         
 def is_in(point, list):
     for p in list:
@@ -33,7 +36,6 @@ if __name__ == "__main__":
     for i in linspace(0,1):
         midpoints.append(tuple(i*your_mesh.bounding_box.bounds.max(axis=0)))
         z_points.append(i*your_mesh.bounding_box.bounds.max(axis=0))
-
     for z_val in midpoints:
         muh_lines = intersections.mesh_plane(your_mesh, (0,0,1), z_val)
         seg_list = list(map(lambda line : LineSegment(shapely.Point(line[0,0:2]), shapely.Point(line[1,0:2])), muh_lines))
@@ -51,6 +53,16 @@ if __name__ == "__main__":
                 break
 
         poly_points = []
+
+        poly_segs_len = len(poly_segs)
+        for k in range(poly_segs_len):
+            prev_seg = poly_segs[(k-1) % poly_segs_len]
+            next_seg = poly_segs[(k+1) % poly_segs_len]
+            
+            if not is_in(poly_segs[k].point1, [prev_seg.point1, prev_seg.point2]) and not is_in(poly_segs[k].point2, [next_seg.point1, next_seg.point2]):
+                poly_segs[k] = LineSegment(poly_segs[k].point2, poly_segs[k].point2)
+
+
         for s in poly_segs:
             if not is_in(s.point1, poly_points):
                 poly_points.append(s.point1)
