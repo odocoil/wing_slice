@@ -21,8 +21,8 @@ class LineSegment:
     def __repr__(self):
         return self.point1.__repr__() + "--" + self.point2.__repr__()
         
-def is_in(point, list):
-    for p in list:
+def is_in(point, list_in):
+    for p in list_in:
         if p.equals_exact(point, UNI_TOL):
             return True
     return False
@@ -33,44 +33,55 @@ if __name__ == "__main__":
 
     midpoints = list()
     z_points = list()
+    polygon_list = []
     for i in linspace(0,1):
+    # for i in linspace(.5,.6):
         midpoints.append(tuple(i*your_mesh.bounding_box.bounds.max(axis=0)))
         z_points.append(i*your_mesh.bounding_box.bounds.max(axis=0))
+    
+    poo = 0
     for z_val in midpoints:
+        # poo += 1
+        # if poo != 20:
+        #     continue
         muh_lines = intersections.mesh_plane(your_mesh, (0,0,1), z_val)
         seg_list = list(map(lambda line : LineSegment(shapely.Point(line[0,0:2]), shapely.Point(line[1,0:2])), muh_lines))
-        if len(seg_list) <= 0:
-            continue
-        poly_segs = [seg_list.pop(0)]
-        END_OF_LOOP = False
-        while True:
-            current_seg = poly_segs[-1]
-            for k, seg in enumerate(seg_list):
-                if seg.connected(current_seg):
-                    poly_segs.append(seg_list.pop(k))
-                    break
-            else:
-                break
-
-        poly_points = []
-
-        poly_segs_len = len(poly_segs)
-        for k in range(poly_segs_len):
-            prev_seg = poly_segs[(k-1) % poly_segs_len]
-            next_seg = poly_segs[(k+1) % poly_segs_len]
+        while len(seg_list) > 0:
+            if len(seg_list) <= 0:
+                continue
+            poly_segs = [seg_list.pop(0)]
             
-            if not is_in(poly_segs[k].point1, [prev_seg.point1, prev_seg.point2]) and not is_in(poly_segs[k].point2, [next_seg.point1, next_seg.point2]):
-                poly_segs[k] = LineSegment(poly_segs[k].point2, poly_segs[k].point2)
+            while True:
+                current_seg = poly_segs[-1]
+                for k, seg in enumerate(seg_list):
+                    if seg.connected(current_seg):
+                        poly_segs.append(seg_list.pop(k))
+                        break
+                else:
+                    break
 
+            poly_points = []
 
-        for s in poly_segs:
-            if not is_in(s.point1, poly_points):
-                poly_points.append(s.point1)
-            if not is_in(s.point2, poly_points):
-                poly_points.append(s.point2)
+            poly_segs_len = len(poly_segs)
+            for k in range(poly_segs_len):
+                prev_seg = poly_segs[(k-1) % poly_segs_len]
+                next_seg = poly_segs[(k+1) % poly_segs_len]
+                
+                if not is_in(poly_segs[k].point1, [prev_seg.point1, prev_seg.point2]) and not is_in(poly_segs[k].point2, [next_seg.point1, next_seg.point2]):
+                    poly_segs[k] = LineSegment(poly_segs[k].point2, poly_segs[k].point2)
 
-        my_gon = shapely.Polygon(poly_points)
+            for s in poly_segs:
+                if not is_in(s.point1, poly_points):
+                    poly_points.append(s.point1)
+                if not is_in(s.point2, poly_points):
+                    poly_points.append(s.point2)
+
+            try:
+                polygon_list.append(shapely.Polygon(poly_points))
+            except ValueError:
+                print("Not enough points for a polygon so we need to make a line. At some point.")
+
+    for my_gon in polygon_list:
         x,y = my_gon.exterior.xy
         plt.plot(x,y)
-        
     plt.show()
